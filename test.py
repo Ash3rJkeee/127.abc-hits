@@ -1,10 +1,12 @@
 
 def is_simple(x):
     """Фукнция определения простоты"""
-    global simples_list
+    global simples_list, composite_set
 
-    if x in simples_list:
+    if x in simples_list:              # проверка на вхождение в заране созданный список простых чисел
         return True
+    elif x in composite_set:            # проверка на вхождение в заранее созданное множество составных чисел
+        return False
     else:
         sum_number = 0
         for num in str(x):
@@ -15,20 +17,21 @@ def is_simple(x):
                 or (str(x)[-1] == "5")\
                 or (int(str(x)[-1]) % 2 == 0) \
                 or (sum_number % 3 == 0):
+            composite_set.add(x)
             return False
 
         # прямой тест простоты
         for i in range(2, x):
             if x % i == 0:
+                composite_set.add(x)
                 return False
 
         simples_list.append(x)
         return True
 
 
-def simplifier(x):
-    """Возвращает массив простых множителей своего аргумента"""
-
+def simplifiers(x):
+    """Возвращает множество (set) простых множителей своего аргумента"""
     multiply_arr = []
     while x != 1:
         for i in range(2, x + 1):
@@ -36,33 +39,37 @@ def simplifier(x):
                 x = round(x / i)
                 multiply_arr.append(i)
                 continue
-    multiply_arr.sort()
+    # multiply_arr.sort()
+    multiply_arr = set(multiply_arr)
     return multiply_arr
 
 
 def gcd(x, y):
-    """Поиск наибольшего общего делителя"""
-    x = set(simplifier(x))
-    y = set(simplifier(y))
+    """Проверка на существование хотя бы 1 общего делителя, кроме 1, из двух множеств простых делителей на вводе"""
     intersection = x.intersection(y)
     answer = 1
-    for i in intersection:
-        answer = answer * i
+    if len(list(intersection)) > 1:
+        answer = max(list(intersection))
     return answer
 
 
 def rad(x):
     """Поиск радикала"""
     answer = 1
-    for i in set(simplifier(x)):
+    for i in x:
         answer = answer * i
     return answer
 
 
 def abc_check(a, b, c):
     """Проверка на abc совпадение"""
-    if gcd(a, b) == gcd(a, c) == gcd(b, c) == 1:
-        if rad(a * b * c) < c:
+    sim_a = simplifiers(a)
+    sim_b = simplifiers(b)
+    sim_c = simplifiers(c)
+    sim_abc = simplifiers(a * b * c)
+
+    if rad(sim_abc) < c:
+        if gcd(sim_a, sim_b) == gcd(sim_a, sim_c) == gcd(sim_b, sim_c) == 1:
             return True
     return False
 
@@ -70,17 +77,19 @@ def abc_check(a, b, c):
 if __name__ == "__main__":
     abc_combinations = []
     simples_list = [1, 2, 3, 5, 7]
-
+    composite_set = set()
+    combinations_checked = 0
     count = 0
 
-    for b in range(1, 1000, 2):
+    for b in range(3, 1000, 2):
         for a in range(1, b, 2):
             c = a + b
+            combinations_checked = combinations_checked + 1
             # print(a, b, c, abc_check(a, b, c))
             if (c < 1000) and (abc_check(a, b, c)):
                 abc_combinations.append([a, b, c])
                 count += 1
-            print("\r", a, b, c, "Совпадений:", count, end="")
+            print("\r", a, b, c, "Совпадений:", count, "Комбинаций проврено:", combinations_checked, end="")
 
     n = 0
     for i in abc_combinations:
